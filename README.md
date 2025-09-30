@@ -21,7 +21,23 @@ A modern, full-stack streaming platform built with NestJS, Next.js, PostgreSQL, 
 - ✅ Interactive content browsing with horizontal scroll
 - ✅ Loading skeletons for better UX
 - ✅ Content modal with accessibility features (ARIA labels, keyboard navigation)
-- ✅ Video player with React Player (play/pause, volume, seek, fullscreen controls)
+- ✅ Video player with React Player integration
+  - Play/pause controls with visual feedback
+  - Volume control with mute toggle
+  - Progress bar with seek functionality
+  - Time display (current/total duration)
+  - Fullscreen toggle button
+  - Custom controls overlay with smooth transitions
+- ✅ Advanced video player features
+  - Auto-hide controls after 3 seconds of inactivity
+  - Controls reappear on mouse movement
+  - Resume playback from last watched position
+  - Click to pause/play (desktop) or show controls (mobile)
+  - Double-click to toggle fullscreen
+  - Keyboard shortcuts (Space for play/pause, Escape to close)
+  - Mobile-responsive behavior (touch-optimized controls)
+  - Cursor hides when controls are hidden
+  - Controls stay visible when paused
 - ✅ Watch history tracking using localStorage
 - ✅ Custom React hooks (useWatchHistory)
 - ✅ Hover animations and transitions

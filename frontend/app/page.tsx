@@ -186,7 +186,7 @@ export default function Home() {
         <div id="history" className="pt-8">
           <WatchHistory
             content={content}
-            watchProgress={watchProgressMap}
+            watchHistory={watchHistory}
             onContentClick={handleContentClick}
           />
         </div>

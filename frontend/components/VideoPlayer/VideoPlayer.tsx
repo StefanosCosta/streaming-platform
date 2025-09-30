@@ -138,6 +138,18 @@ export default function VideoPlayer({
     }
   }, [isMobile, resetControlsTimeout]);
 
+  // Handle double-click to toggle fullscreen
+  const handleVideoDoubleClick = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (document.fullscreenElement) {
+      document.exitFullscreen();
+    } else {
+      document.documentElement.requestFullscreen();
+    }
+  }, []);
+
   const handleClose = () => {
     // Save final progress before closing
     if (playerRef.current && duration > 0) {
@@ -210,7 +222,7 @@ export default function VideoPlayer({
 
   return (
     <div
-      className={`fixed inset-0 z-50 bg-black ${showControls ? 'cursor-default' : 'cursor-none'}`}
+      className={`fixed inset-0 z-50 bg-black select-none ${showControls ? 'cursor-default' : 'cursor-none'}`}
       role="dialog"
       aria-modal="true"
       aria-label="Video player"
@@ -242,9 +254,10 @@ export default function VideoPlayer({
 
       {/* Video Player */}
       <div
-        className="w-full h-full flex items-center justify-center relative"
+        className="w-full h-full flex items-center justify-center relative select-none"
         onMouseMove={handleMouseMove}
         onClick={handleVideoClick}
+        onDoubleClick={handleVideoDoubleClick}
       >
         <div style={{ width: '100%', height: '100%', pointerEvents: 'none' }}>
           <ReactPlayer
@@ -268,9 +281,10 @@ export default function VideoPlayer({
         </div>
         {/* Transparent overlay to capture mouse events and toggle play/pause */}
         <div
-          className={`absolute inset-0 ${showControls ? 'pointer-events-none' : 'pointer-events-auto'}`}
+          className={`absolute inset-0 select-none ${showControls ? 'pointer-events-none' : 'pointer-events-auto'}`}
           onMouseMove={handleMouseMove}
           onClick={handleVideoClick}
+          onDoubleClick={handleVideoDoubleClick}
           style={{ background: 'transparent' }}
         />
       </div>
@@ -293,7 +307,8 @@ export default function VideoPlayer({
             onMouseDown={handleSeekMouseDown}
             onChange={handleSeekChange}
             onMouseUp={handleSeekMouseUp}
-            className="w-full h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer accent-red-600"
+            className="range-slider-progress"
+            style={{ '--progress': `${(played || 0) * 100}%` } as React.CSSProperties}
             aria-label="Video progress"
           />
           <div className="flex justify-between text-xs text-gray-400 mt-1">
@@ -378,7 +393,8 @@ export default function VideoPlayer({
                 step={0.1}
                 value={volume}
                 onChange={handleVolumeChange}
-                className="w-20 h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer accent-red-600"
+                className="range-slider-volume"
+                style={{ '--volume': `${volume * 100}%` } as React.CSSProperties}
                 aria-label="Volume"
               />
             </div>
