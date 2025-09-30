@@ -6,6 +6,7 @@ import LoadingSkeleton from '@/components/LoadingSkeleton/LoadingSkeleton';
 import ContentGrid from '@/components/ContentGrid/ContentGrid';
 import ContentModal from '@/components/ContentModal/ContentModal';
 import WatchHistory from '@/components/WatchHistory/WatchHistory';
+import VideoPlayer from '@/components/VideoPlayer/VideoPlayer';
 import { StreamingContent } from '@/types/content';
 import { fetchStreamingContent } from '@/utils/api';
 import { useWatchHistory } from '@/hooks/useWatchHistory';
@@ -15,6 +16,8 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedContent, setSelectedContent] =
+    useState<StreamingContent | null>(null);
+  const [playingContent, setPlayingContent] =
     useState<StreamingContent | null>(null);
 
   const { watchHistory, updateProgress, getProgress } = useWatchHistory();
@@ -69,10 +72,16 @@ export default function Home() {
   };
 
   const handlePlay = (content: StreamingContent) => {
-    // Simulate watching - update progress to a random value
-    const randomProgress = Math.floor(Math.random() * 80) + 10;
-    updateProgress(content.id, randomProgress);
+    setPlayingContent(content);
     setSelectedContent(null);
+  };
+
+  const handleVideoClose = () => {
+    setPlayingContent(null);
+  };
+
+  const handleVideoProgress = (contentId: string, progress: number) => {
+    updateProgress(contentId, progress);
   };
 
   if (loading) {
@@ -210,6 +219,16 @@ export default function Home() {
         onClose={handleModalClose}
         onPlay={handlePlay}
       />
+
+      {/* Video Player */}
+      {playingContent && (
+        <VideoPlayer
+          content={playingContent}
+          initialProgress={getProgress(playingContent.id)}
+          onClose={handleVideoClose}
+          onProgress={handleVideoProgress}
+        />
+      )}
     </div>
   );
 }

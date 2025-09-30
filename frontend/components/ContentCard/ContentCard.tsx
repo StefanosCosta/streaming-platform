@@ -1,7 +1,6 @@
 'use client';
 
 import { StreamingContent } from '@/types/content';
-import { useState } from 'react';
 
 interface ContentCardProps {
   content: StreamingContent;
@@ -14,9 +13,6 @@ export default function ContentCard({
   watchProgress = 0,
   onClick,
 }: ContentCardProps) {
-  const [imageLoaded, setImageLoaded] = useState(false);
-  const [imageError, setImageError] = useState(false);
-
   return (
     <div
       className="flex-shrink-0 w-72 cursor-pointer group relative"
@@ -32,38 +28,10 @@ export default function ContentCard({
       aria-label={`Play ${content.title}`}
     >
       {/* Thumbnail */}
-      <div className="relative h-40 bg-gray-800 rounded-lg overflow-hidden">
-        {!imageError ? (
-          <>
-            {!imageLoaded && (
-              <div className="absolute inset-0 bg-gray-700 animate-pulse" />
-            )}
-            <img
-              src={content.thumbnailUrl}
-              alt={content.title}
-              className={`w-full h-full object-cover transition-all duration-300 group-hover:scale-110 ${
-                imageLoaded ? 'opacity-100' : 'opacity-0'
-              }`}
-              onLoad={() => setImageLoaded(true)}
-              onError={() => setImageError(true)}
-            />
-          </>
-        ) : (
-          <div className="absolute inset-0 flex items-center justify-center bg-gray-800">
-            <svg
-              className="w-12 h-12 text-gray-600"
-              fill="currentColor"
-              viewBox="0 0 20 20"
-            >
-              <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-              <path
-                fillRule="evenodd"
-                d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
-                clipRule="evenodd"
-              />
-            </svg>
-          </div>
-        )}
+      <div
+        className="relative h-40 bg-gray-800 rounded-lg overflow-hidden bg-cover bg-center"
+        style={{ backgroundImage: `url(${content.thumbnailUrl})` }}
+      >
 
         {/* Watch Progress Bar */}
         {watchProgress > 0 && (
@@ -76,7 +44,7 @@ export default function ContentCard({
         )}
 
         {/* Play Button Overlay */}
-        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all duration-300 flex items-center justify-center">
+        <div className="absolute inset-0 group-hover:bg-black group-hover:bg-opacity-40 transition-all duration-300 flex items-center justify-center pointer-events-none">
           <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
             <div className="w-14 h-14 bg-white bg-opacity-90 rounded-full flex items-center justify-center">
               <svg
@@ -89,9 +57,6 @@ export default function ContentCard({
             </div>
           </div>
         </div>
-
-        {/* Hover Shadow Effect */}
-        <div className="absolute inset-0 shadow-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
       </div>
 
       {/* Content Info */}

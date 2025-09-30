@@ -21,6 +21,7 @@ A modern, full-stack streaming platform built with NestJS, Next.js, PostgreSQL, 
 - ✅ Interactive content browsing with horizontal scroll
 - ✅ Loading skeletons for better UX
 - ✅ Content modal with accessibility features (ARIA labels, keyboard navigation)
+- ✅ Video player with React Player (play/pause, volume, seek, fullscreen controls)
 - ✅ Watch history tracking using localStorage
 - ✅ Custom React hooks (useWatchHistory)
 - ✅ Hover animations and transitions
@@ -312,6 +313,14 @@ Authorization: Bearer <token>
 
 5. **No External State Management**: React's built-in state management (useState, useEffect, useMemo) is sufficient for this application's complexity.
 
+6. **React Player**: Selected for video playback functionality due to:
+   - Multi-source support (YouTube, Vimeo, MP4, HLS, DASH, etc.)
+   - Lightweight and well-maintained library
+   - Simple API for custom controls
+   - Built-in progress tracking and seek functionality
+   - Cross-browser compatibility
+   - Active development and community support
+
 ## 🎨 Design Decisions
 
 ### UX Patterns
@@ -363,13 +372,11 @@ Authorization: Bearer <token>
 
 1. **Mock Authentication**: JWT authentication is mocked. Production would require user registration/login.
 
-2. **No Video Playback**: Clicking "Play" simulates watching. A real player (e.g., Video.js, Plyr) would be integrated.
+2. **Client-Side Watch History**: Uses localStorage. Production would sync with backend.
 
-3. **Client-Side Watch History**: Uses localStorage. Production would sync with backend.
+3. **Image Loading**: Uses external URLs. Production would use CDN with optimized images.
 
-4. **Image Loading**: Uses external URLs. Production would use CDN with optimized images.
-
-5. **No Pagination**: All content loads at once. Production would implement infinite scroll or pagination.
+4. **No Pagination**: All content loads at once. Production would implement infinite scroll or pagination.
 
 ### Future Enhancements
 
@@ -437,6 +444,6 @@ This project is for assessment purposes only.
 
 ---
 
-**Built with ❤️ by [Your Name]**
+**Built with by Stefanos Costa**
 
 *Last Updated: 2025-09-30*
