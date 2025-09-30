@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import ReactPlayer from 'react-player';
 import { StreamingContent } from '@/types/content';
 
@@ -25,8 +25,28 @@ export default function VideoPlayer({
   const [played, setPlayed] = useState(initialProgress > 0 ? initialProgress / 100 : 0);
   const [duration, setDuration] = useState(0);
   const [seeking, setSeeking] = useState(false);
+  const [showControls, setShowControls] = useState(true);
   const lastUpdateTimeRef = useRef<number>(0);
   const hasSeekOnLoadRef = useRef<boolean>(false);
+  const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Auto-hide controls after 3 seconds of inactivity
+  const resetControlsTimeout = useCallback(() => {
+    console.log('resetControlsTimeout called, playing:', playing, 'showControls:', showControls);
+    setShowControls(true);
+
+    if (controlsTimeoutRef.current) {
+      clearTimeout(controlsTimeoutRef.current);
+    }
+
+    // Only hide controls if video is playing
+    if (playing) {
+      controlsTimeoutRef.current = setTimeout(() => {
+        console.log('Hiding controls after timeout');
+        setShowControls(false);
+      }, 3000);
+    }
+  }, [playing]);
 
   useEffect(() => {
     // Lock body scroll when player is open
@@ -42,14 +62,20 @@ export default function VideoPlayer({
       }
     };
 
+    // Handle fullscreen changes
+    const handleFullscreenChange = () => {
+      resetControlsTimeout();
+    };
+
     document.addEventListener('keydown', handleEscape);
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
 
     return () => {
       document.body.style.overflow = 'unset';
       document.removeEventListener('keydown', handleEscape);
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [resetControlsTimeout]);
 
   // Seek to initial progress when duration is loaded
   useEffect(() => {
@@ -64,6 +90,35 @@ export default function VideoPlayer({
       hasSeekOnLoadRef.current = true;
     }
   }, [duration, initialProgress]);
+
+  // Show controls when paused
+  useEffect(() => {
+    if (!playing) {
+      setShowControls(true);
+      if (controlsTimeoutRef.current) {
+        clearTimeout(controlsTimeoutRef.current);
+      }
+    } else {
+      resetControlsTimeout();
+    }
+  }, [playing, resetControlsTimeout]);
+
+  // Handle mouse movement
+  const handleMouseMove = useCallback(() => {
+    console.log('handleMouseMove called');
+    resetControlsTimeout();
+  }, [resetControlsTimeout]);
+
+  // Handle video area click to toggle play/pause
+  const handleVideoClick = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('handleVideoClick called, current playing:', playing);
+    setPlaying((prev) => {
+      console.log('Toggling from', prev, 'to', !prev);
+      return !prev;
+    });
+  }, [playing]);
 
   const handleClose = () => {
     // Save final progress before closing
@@ -137,15 +192,19 @@ export default function VideoPlayer({
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-black"
+      className={`fixed inset-0 z-50 bg-black ${showControls ? 'cursor-default' : 'cursor-none'}`}
       role="dialog"
       aria-modal="true"
       aria-label="Video player"
+      onMouseMove={handleMouseMove}
+      onClick={handleMouseMove}
     >
       {/* Close Button */}
       <button
         onClick={handleClose}
-        className="absolute top-4 right-4 z-10 w-12 h-12 bg-black bg-opacity-70 hover:bg-opacity-90 rounded-full flex items-center justify-center transition-all"
+        className={`absolute top-4 right-4 z-10 w-12 h-12 bg-black bg-opacity-70 hover:bg-opacity-90 rounded-full flex items-center justify-center transition-all duration-300 ${
+          showControls ? 'opacity-100' : 'opacity-0'
+        }`}
         aria-label="Close video player"
       >
         <svg
@@ -164,29 +223,47 @@ export default function VideoPlayer({
       </button>
 
       {/* Video Player */}
-      <div className="w-full h-full flex items-center justify-center">
-        <ReactPlayer
-          ref={playerRef}
-          src={content.videoUrl}
-          playing={playing}
-          volume={volume}
-          muted={muted}
-          width="100%"
-          height="100%"
-          onTimeUpdate={handleTimeUpdate}
-          onDurationChange={() => {
-            if (playerRef.current) {
-              const dur = playerRef.current.duration;
-              if (dur && !isNaN(dur)) {
-                setDuration(dur);
+      <div
+        className="w-full h-full flex items-center justify-center relative"
+        onMouseMove={handleMouseMove}
+        onClick={handleVideoClick}
+      >
+        <div style={{ width: '100%', height: '100%', pointerEvents: 'none' }}>
+          <ReactPlayer
+            ref={playerRef}
+            src={content.videoUrl}
+            playing={playing}
+            volume={volume}
+            muted={muted}
+            width="100%"
+            height="100%"
+            onTimeUpdate={handleTimeUpdate}
+            onDurationChange={() => {
+              if (playerRef.current) {
+                const dur = playerRef.current.duration;
+                if (dur && !isNaN(dur)) {
+                  setDuration(dur);
+                }
               }
-            }
-          }}
+            }}
+          />
+        </div>
+        {/* Transparent overlay to capture mouse events and toggle play/pause */}
+        <div
+          className={`absolute inset-0 ${showControls ? 'pointer-events-none' : 'pointer-events-auto'}`}
+          onMouseMove={handleMouseMove}
+          onClick={handleVideoClick}
+          style={{ background: 'transparent' }}
         />
       </div>
 
       {/* Custom Controls */}
-      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/80 to-transparent p-6">
+      <div
+        className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/80 to-transparent p-6 transition-opacity duration-300 ${
+          showControls ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        }`}
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Progress Bar */}
         <div className="mb-4">
           <input
