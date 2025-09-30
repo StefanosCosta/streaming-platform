@@ -26,13 +26,30 @@ export default function VideoPlayer({
   const [duration, setDuration] = useState(0);
   const [seeking, setSeeking] = useState(false);
   const [showControls, setShowControls] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
   const lastUpdateTimeRef = useRef<number>(0);
   const hasSeekOnLoadRef = useRef<boolean>(false);
   const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Detect mobile device
+  useEffect(() => {
+    const checkMobile = () => {
+      const mediaQuery = window.matchMedia('(hover: none) and (pointer: coarse)');
+      setIsMobile(mediaQuery.matches);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    window.addEventListener('orientationchange', checkMobile);
+
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+      window.removeEventListener('orientationchange', checkMobile);
+    };
+  }, []);
+
   // Auto-hide controls after 3 seconds of inactivity
   const resetControlsTimeout = useCallback(() => {
-    console.log('resetControlsTimeout called, playing:', playing, 'showControls:', showControls);
     setShowControls(true);
 
     if (controlsTimeoutRef.current) {
@@ -42,7 +59,6 @@ export default function VideoPlayer({
     // Only hide controls if video is playing
     if (playing) {
       controlsTimeoutRef.current = setTimeout(() => {
-        console.log('Hiding controls after timeout');
         setShowControls(false);
       }, 3000);
     }
@@ -105,20 +121,22 @@ export default function VideoPlayer({
 
   // Handle mouse movement
   const handleMouseMove = useCallback(() => {
-    console.log('handleMouseMove called');
     resetControlsTimeout();
   }, [resetControlsTimeout]);
 
-  // Handle video area click to toggle play/pause
+  // Handle video area click - different behavior for mobile vs desktop
   const handleVideoClick = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    console.log('handleVideoClick called, current playing:', playing);
-    setPlaying((prev) => {
-      console.log('Toggling from', prev, 'to', !prev);
-      return !prev;
-    });
-  }, [playing]);
+
+    if (isMobile) {
+      // On mobile: just show controls, don't toggle play/pause
+      resetControlsTimeout();
+    } else {
+      // On desktop: toggle play/pause
+      setPlaying((prev) => !prev);
+    }
+  }, [isMobile, resetControlsTimeout]);
 
   const handleClose = () => {
     // Save final progress before closing
