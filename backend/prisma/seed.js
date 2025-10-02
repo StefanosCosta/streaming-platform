@@ -1,16 +1,8 @@
-/**
- * Database Seed Script (TypeScript)
- *
- * NOTE: This is the development version of the seed script.
- * For production (Heroku), we use seed.js (JavaScript) to avoid ts-node dependency.
- *
- * Keep both files in sync when updating seed data.
- *
- * Local: npm run prisma:seed (uses this TypeScript file)
- * Production: node prisma/seed.js (uses JavaScript file)
- */
+// Production seed file for Heroku deployment
+// JavaScript version to avoid ts-node dependency in production
+// Keep in sync with seed.ts for local development
 
-import { PrismaClient } from '@prisma/client';
+const { PrismaClient } = require('@prisma/client');
 
 const prisma = new PrismaClient();
 
@@ -202,6 +194,7 @@ async function main() {
 
   // Clear existing data
   await prisma.streamingContent.deleteMany();
+  console.log('🗑️  Cleared existing content');
 
   // Create sample content
   for (const content of sampleContent) {
