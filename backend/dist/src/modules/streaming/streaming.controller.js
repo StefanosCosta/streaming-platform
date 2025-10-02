@@ -17,6 +17,7 @@ const common_1 = require("@nestjs/common");
 const streaming_service_1 = require("./streaming.service");
 const create_streaming_content_dto_1 = require("./dto/create-streaming-content.dto");
 const update_streaming_content_dto_1 = require("./dto/update-streaming-content.dto");
+const update_progress_dto_1 = require("./dto/update-progress.dto");
 const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
 let StreamingController = class StreamingController {
     streamingService;
@@ -37,6 +38,9 @@ let StreamingController = class StreamingController {
     }
     remove(id) {
         return this.streamingService.remove(id);
+    }
+    updateProgress(id, updateProgressDto) {
+        return this.streamingService.updateProgress(id, updateProgressDto.watchProgress);
     }
 };
 exports.StreamingController = StreamingController;
@@ -78,6 +82,14 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], StreamingController.prototype, "remove", null);
+__decorate([
+    (0, common_1.Patch)(':id/progress'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)(new common_1.ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, update_progress_dto_1.UpdateProgressDto]),
+    __metadata("design:returntype", void 0)
+], StreamingController.prototype, "updateProgress", null);
 exports.StreamingController = StreamingController = __decorate([
     (0, common_1.Controller)('api/streaming'),
     __metadata("design:paramtypes", [streaming_service_1.StreamingService])

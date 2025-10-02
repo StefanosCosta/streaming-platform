@@ -6,12 +6,14 @@ import {
   Put,
   Param,
   Delete,
+  Patch,
   UseGuards,
   ValidationPipe,
 } from '@nestjs/common';
 import { StreamingService } from './streaming.service';
 import { CreateStreamingContentDto } from './dto/create-streaming-content.dto';
 import { UpdateStreamingContentDto } from './dto/update-streaming-content.dto';
+import { UpdateProgressDto } from './dto/update-progress.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('api/streaming')
@@ -51,5 +53,17 @@ export class StreamingController {
   @UseGuards(JwtAuthGuard)
   remove(@Param('id') id: string) {
     return this.streamingService.remove(id);
+  }
+
+  @Patch(':id/progress')
+  updateProgress(
+    @Param('id') id: string,
+    @Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
+    updateProgressDto: UpdateProgressDto,
+  ) {
+    return this.streamingService.updateProgress(
+      id,
+      updateProgressDto.watchProgress,
+    );
   }
 }

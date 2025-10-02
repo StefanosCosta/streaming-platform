@@ -38,7 +38,11 @@ A modern, full-stack streaming platform built with NestJS, Next.js, PostgreSQL, 
   - Mobile-responsive behavior (touch-optimized controls)
   - Cursor hides when controls are hidden
   - Controls stay visible when paused
-- ✅ Watch history tracking using localStorage
+- ✅ Watch history tracking with backend sync
+  - localStorage for offline persistence
+  - Automatic sync to backend database
+  - Debounced updates (5s) during playback
+  - Immediate sync on video close
 - ✅ Custom React hooks (useWatchHistory)
 - ✅ Hover animations and transitions
 - ✅ Dark theme optimized for streaming
@@ -447,6 +451,23 @@ Authorization: Bearer <token>
 
 **Response**: 200 OK
 
+#### PATCH /api/streaming/:id/progress
+Update watch progress for a content item (public, no authentication required)
+
+**Body**:
+```json
+{
+  "watchProgress": 67.5
+}
+```
+
+**Validation Rules**:
+- `watchProgress`: Number between 0 and 100 (percentage)
+
+**Response**: 200 OK (returns updated content object)
+
+**Note**: This endpoint is public to allow easy progress tracking from the frontend without authentication overhead. It only updates the `watchProgress` field and does not require JWT tokens.
+
 ## 🏗️ Architecture Decisions
 
 ### Backend
@@ -509,6 +530,21 @@ Authorization: Bearer <token>
    - Built-in progress tracking and seek functionality
    - Cross-browser compatibility
    - Active development and community support
+
+7. **Watch Progress Tracking Strategy**: localStorage-first with backend sync
+   - **Primary Storage**: Browser localStorage for fast, offline-capable tracking
+   - **Backend Sync**: Automatic sync to database via `PATCH /api/streaming/:id/progress`
+   - **Sync Behavior**:
+     - Debounced updates every 5 seconds during playback
+     - Immediate sync on video close
+     - One-way sync: frontend → backend
+   - **Read Pattern**: Frontend always reads from localStorage (not from backend)
+   - **Rationale**:
+     - Faster user experience (no API calls on page load)
+     - Works offline
+     - Backend serves as backup/history tracking
+     - Future enhancement: could fetch backend progress on new devices
+   - **Trade-off**: Progress not synced across devices in current implementation
 
 ## 🎨 Design Decisions
 

@@ -82,4 +82,20 @@ export class StreamingService {
       throw new BadRequestException('Failed to delete content');
     }
   }
+
+  async updateProgress(id: string, watchProgress: number) {
+    try {
+      await this.findOne(id); // Check if exists
+
+      return await this.prisma.streamingContent.update({
+        where: { id },
+        data: { watchProgress },
+      });
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new BadRequestException('Failed to update watch progress');
+    }
+  }
 }

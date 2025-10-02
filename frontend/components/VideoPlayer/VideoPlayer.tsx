@@ -8,7 +8,7 @@ interface VideoPlayerProps {
   content: StreamingContent;
   initialProgress?: number;
   onClose: () => void;
-  onProgress: (contentId: string, progress: number) => void;
+  onProgress: (contentId: string, progress: number, immediate?: boolean) => void;
 }
 
 export default function VideoPlayer({
@@ -151,11 +151,11 @@ export default function VideoPlayer({
   }, []);
 
   const handleClose = () => {
-    // Save final progress before closing
+    // Save final progress before closing (immediately, not debounced)
     if (playerRef.current && duration > 0) {
       const currentProgress = playerRef.current.currentTime;
       const progressPercent = (currentProgress / duration) * 100;
-      onProgress(content.id, progressPercent);
+      onProgress(content.id, progressPercent, true); // true = immediate sync
     }
     onClose();
   };

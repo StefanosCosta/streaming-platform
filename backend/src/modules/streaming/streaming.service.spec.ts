@@ -5,7 +5,6 @@ import { PrismaService } from '../../prisma/prisma.service';
 
 describe('StreamingService', () => {
   let service: StreamingService;
-  let prismaService: PrismaService;
 
   const mockPrismaService = {
     streamingContent: {
@@ -44,7 +43,6 @@ describe('StreamingService', () => {
     }).compile();
 
     service = module.get<StreamingService>(StreamingService);
-    prismaService = module.get<PrismaService>(PrismaService);
   });
 
   afterEach(() => {
@@ -209,6 +207,48 @@ describe('StreamingService', () => {
 
       await expect(service.remove('non-existent-id')).rejects.toThrow(
         NotFoundException,
+      );
+    });
+  });
+
+  describe('updateProgress', () => {
+    it('should update watch progress for existing content', async () => {
+      const updatedContent = { ...mockContent, watchProgress: 45.5 };
+
+      mockPrismaService.streamingContent.findUnique.mockResolvedValue(
+        mockContent,
+      );
+      mockPrismaService.streamingContent.update.mockResolvedValue(
+        updatedContent,
+      );
+
+      const result = await service.updateProgress('test-id-123', 45.5);
+
+      expect(result).toEqual(updatedContent);
+      expect(mockPrismaService.streamingContent.update).toHaveBeenCalledWith({
+        where: { id: 'test-id-123' },
+        data: { watchProgress: 45.5 },
+      });
+    });
+
+    it('should throw NotFoundException when updating progress for non-existent content', async () => {
+      mockPrismaService.streamingContent.findUnique.mockResolvedValue(null);
+
+      await expect(
+        service.updateProgress('non-existent-id', 50),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('should throw BadRequestException when update fails', async () => {
+      mockPrismaService.streamingContent.findUnique.mockResolvedValue(
+        mockContent,
+      );
+      mockPrismaService.streamingContent.update.mockRejectedValue(
+        new Error('Database error'),
+      );
+
+      await expect(service.updateProgress('test-id-123', 50)).rejects.toThrow(
+        BadRequestException,
       );
     });
   });

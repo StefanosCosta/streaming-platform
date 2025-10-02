@@ -19,8 +19,10 @@ export default function Home() {
     useState<StreamingContent | null>(null);
   const [playingContent, setPlayingContent] =
     useState<StreamingContent | null>(null);
+  const [contentInitialized, setContentInitialized] = useState(false);
 
-  const { watchHistory, updateProgress, getProgress } = useWatchHistory();
+  const { watchHistory, updateProgress, getProgress, isInitialized } =
+    useWatchHistory();
 
   // Load content on mount
   useEffect(() => {
@@ -29,6 +31,7 @@ export default function Home() {
         setLoading(true);
         const data = await fetchStreamingContent();
         setContent(data);
+        setContentInitialized(true);
       } catch (err) {
         setError('Failed to load content. Please try again later.');
         console.error('Error loading content:', err);
@@ -39,6 +42,20 @@ export default function Home() {
 
     loadContent();
   }, []);
+
+  // Sync backend progress to localStorage on first load
+  useEffect(() => {
+    if (!contentInitialized || !isInitialized) return;
+
+    // For each content item with backend progress but no localStorage value
+    content.forEach((item) => {
+      const localProgress = getProgress(item.id);
+      if (localProgress === 0 && item.watchProgress > 0) {
+        // Initialize localStorage from backend (with immediate sync back)
+        updateProgress(item.id, item.watchProgress, true);
+      }
+    });
+  }, [contentInitialized, isInitialized, content, getProgress, updateProgress]);
 
   // Create a map of content ID to watch progress
   const watchProgressMap = useMemo(() => {

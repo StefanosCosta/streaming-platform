@@ -1,11 +1,14 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { WatchHistoryItem } from '@/types/content';
 
 const WATCH_HISTORY_KEY = 'zenithflix_watch_history';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 export function useWatchHistory() {
   const [watchHistory, setWatchHistory] = useState<WatchHistoryItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isInitialized, setIsInitialized] = useState(false);
+  const syncTimeoutRef = useRef<Record<string, NodeJS.Timeout>>({});
 
   // Load watch history from localStorage on mount
   useEffect(() => {
@@ -18,7 +21,15 @@ export function useWatchHistory() {
       console.error('Failed to load watch history:', error);
     } finally {
       setIsLoading(false);
+      setIsInitialized(true);
     }
+  }, []);
+
+  // Clean up debounce timers on unmount
+  useEffect(() => {
+    return () => {
+      Object.values(syncTimeoutRef.current).forEach(clearTimeout);
+    };
   }, []);
 
   // Save watch history to localStorage whenever it changes
@@ -30,9 +41,57 @@ export function useWatchHistory() {
     }
   }, []);
 
+  // Sync progress to backend API (debounced)
+  const syncProgressToBackend = useCallback(
+    (contentId: string, progress: number, immediate = false) => {
+      // Clear existing timeout for this content
+      if (syncTimeoutRef.current[contentId]) {
+        clearTimeout(syncTimeoutRef.current[contentId]);
+      }
+
+      const doSync = async () => {
+        try {
+          const response = await fetch(
+            `${API_BASE_URL}/api/streaming/${contentId}/progress`,
+            {
+              method: 'PATCH',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ watchProgress: progress }),
+            },
+          );
+
+          if (!response.ok) {
+            console.warn(
+              `Failed to sync progress for ${contentId}: ${response.status}`,
+            );
+          }
+        } catch (error) {
+          console.warn(
+            `Failed to sync progress to backend for ${contentId}:`,
+            error,
+          );
+        } finally {
+          // Clean up timeout reference
+          delete syncTimeoutRef.current[contentId];
+        }
+      };
+
+      if (immediate) {
+        // Sync immediately (e.g., on video close)
+        doSync();
+      } else {
+        // Debounce by 5 seconds
+        syncTimeoutRef.current[contentId] = setTimeout(doSync, 5000);
+      }
+    },
+    [],
+  );
+
   // Update progress for a content item
   const updateProgress = useCallback(
-    (contentId: string, progress: number) => {
+    (contentId: string, progress: number, immediate = false) => {
       setWatchHistory((prev) => {
         const existing = prev.find((item) => item.contentId === contentId);
 
@@ -63,8 +122,11 @@ export function useWatchHistory() {
         saveToLocalStorage(newHistory);
         return newHistory;
       });
+
+      // Sync to backend (debounced unless immediate)
+      syncProgressToBackend(contentId, progress, immediate);
     },
-    [saveToLocalStorage],
+    [saveToLocalStorage, syncProgressToBackend],
   );
 
   // Get progress for a specific content item
@@ -85,6 +147,7 @@ export function useWatchHistory() {
   return {
     watchHistory,
     isLoading,
+    isInitialized,
     updateProgress,
     getProgress,
     clearHistory,

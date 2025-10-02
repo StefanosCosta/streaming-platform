@@ -668,6 +668,137 @@
             "description": "Example of 404 error when trying to delete non-existent content."
           },
           "response": []
+        },
+        {
+          "name": "Update Watch Progress",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Watch progress updated successfully\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('id');",
+                  "    pm.expect(jsonData).to.have.property('watchProgress');",
+                  "    pm.expect(jsonData.watchProgress).to.equal(67.5);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"watchProgress\": 67.5\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/streaming/{{content_id}}/progress",
+              "host": ["{{base_url}}"],
+              "path": ["api", "streaming", "{{content_id}}", "progress"]
+            },
+            "description": "Update watch progress for a content item. **No authentication required.**\n\nThis endpoint allows tracking user watch progress without authentication overhead.\n\nValidation rules:\n- watchProgress: required, number between 0-100 (percentage)\n\nReturns:\n- 200 OK with updated content object\n- 404 if content not found\n- 400 if watchProgress is out of range (< 0 or > 100)"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Watch Progress (Invalid Range)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 400\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has validation error\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('message');",
+                  "    pm.expect(jsonData).to.have.property('statusCode');",
+                  "    pm.expect(jsonData.statusCode).to.equal(400);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"watchProgress\": 150\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/streaming/{{content_id}}/progress",
+              "host": ["{{base_url}}"],
+              "path": ["api", "streaming", "{{content_id}}", "progress"]
+            },
+            "description": "Example of 400 validation error when watchProgress is above 100 (out of valid range 0-100)."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Watch Progress (Not Found)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 404\", function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"watchProgress\": 50\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/streaming/00000000-0000-0000-0000-000000000000/progress",
+              "host": ["{{base_url}}"],
+              "path": ["api", "streaming", "00000000-0000-0000-0000-000000000000", "progress"]
+            },
+            "description": "Example of 404 error when trying to update progress for non-existent content."
+          },
+          "response": []
         }
       ],
       "description": "All endpoints for managing streaming content (movies, shows, etc.)"

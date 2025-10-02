@@ -516,4 +516,107 @@ describe('StreamingController (e2e)', () => {
       });
     });
   });
+
+  describe('/api/streaming/:id/progress (PATCH)', () => {
+    let contentIdForProgress: string;
+
+    beforeAll(async () => {
+      // Create content for progress updates
+      const newContent = createValidContent();
+      const response = await request(app.getHttpServer())
+        .post('/api/streaming')
+        .set('Authorization', `Bearer ${authToken}`)
+        .send(newContent)
+        .expect(201);
+
+      contentIdForProgress = response.body.id;
+      testContentIds.push(contentIdForProgress);
+    });
+
+    it('should update watch progress for existing content', async () => {
+      const progressData = { watchProgress: 67.5 };
+
+      const response = await request(app.getHttpServer())
+        .patch(`/api/streaming/${contentIdForProgress}/progress`)
+        .send(progressData)
+        .expect(200);
+
+      expect(response.body).toHaveProperty('id', contentIdForProgress);
+      expect(response.body).toHaveProperty('watchProgress', 67.5);
+    });
+
+    it('should return 404 when updating progress for non-existent content', async () => {
+      const nonExistentId = '00000000-0000-0000-0000-000000000000';
+      const progressData = { watchProgress: 50 };
+
+      await request(app.getHttpServer())
+        .patch(`/api/streaming/${nonExistentId}/progress`)
+        .send(progressData)
+        .expect(404);
+    });
+
+    it('should return 400 when watchProgress is below 0', async () => {
+      const progressData = { watchProgress: -10 };
+
+      await request(app.getHttpServer())
+        .patch(`/api/streaming/${contentIdForProgress}/progress`)
+        .send(progressData)
+        .expect(400);
+    });
+
+    it('should return 400 when watchProgress is above 100', async () => {
+      const progressData = { watchProgress: 150 };
+
+      await request(app.getHttpServer())
+        .patch(`/api/streaming/${contentIdForProgress}/progress`)
+        .send(progressData)
+        .expect(400);
+    });
+
+    it('should not require authentication', async () => {
+      const progressData = { watchProgress: 25 };
+
+      // No Authorization header - should still work
+      const response = await request(app.getHttpServer())
+        .patch(`/api/streaming/${contentIdForProgress}/progress`)
+        .send(progressData)
+        .expect(200);
+
+      expect(response.body).toHaveProperty('watchProgress', 25);
+    });
+
+    it('should reject extra fields in payload', async () => {
+      const progressData = {
+        watchProgress: 50,
+        extraField: 'should be rejected',
+      };
+
+      await request(app.getHttpServer())
+        .patch(`/api/streaming/${contentIdForProgress}/progress`)
+        .send(progressData)
+        .expect(400);
+    });
+
+    it('should update progress to 0', async () => {
+      const progressData = { watchProgress: 0 };
+
+      const response = await request(app.getHttpServer())
+        .patch(`/api/streaming/${contentIdForProgress}/progress`)
+        .send(progressData)
+        .expect(200);
+
+      expect(response.body).toHaveProperty('watchProgress', 0);
+    });
+
+    it('should update progress to 100', async () => {
+      const progressData = { watchProgress: 100 };
+
+      const response = await request(app.getHttpServer())
+        .patch(`/api/streaming/${contentIdForProgress}/progress`)
+        .send(progressData)
+        .expect(200);
+
+      expect(response.body).toHaveProperty('watchProgress', 100);
+    });
+  });
 });

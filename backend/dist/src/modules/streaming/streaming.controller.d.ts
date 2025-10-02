@@ -1,6 +1,7 @@
 import { StreamingService } from './streaming.service';
 import { CreateStreamingContentDto } from './dto/create-streaming-content.dto';
 import { UpdateStreamingContentDto } from './dto/update-streaming-content.dto';
+import { UpdateProgressDto } from './dto/update-progress.dto';
 export declare class StreamingController {
     private readonly streamingService;
     constructor(streamingService: StreamingService);
@@ -62,5 +63,19 @@ export declare class StreamingController {
     }>;
     remove(id: string): Promise<{
         message: string;
+    }>;
+    updateProgress(id: string, updateProgressDto: UpdateProgressDto): Promise<{
+        id: string;
+        title: string;
+        description: string;
+        thumbnailUrl: string;
+        videoUrl: string;
+        year: number;
+        genre: string;
+        rating: number;
+        duration: number;
+        cast: string[];
+        watchProgress: number;
+        createdAt: Date;
     }>;
 }
