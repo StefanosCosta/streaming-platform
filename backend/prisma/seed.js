@@ -11,7 +11,7 @@ const sampleContent = [
     title: 'Inception',
     description:
       'A thief who steals corporate secrets through the use of dream-sharing technology is given the inverse task of planting an idea into the mind of a C.E.O.',
-    thumbnailUrl: 'https://via.placeholder.com/500x300/1a1a2e/eaeaea?text=Inception',
+    thumbnailUrl: 'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fflxt.tmsimg.com%2Fassets%2Fp7825626_p_v8_af.jpg&f=1&nofb=1&ipt=1d929f110205bd3eb1713580bdc13827be410fe4f9a989c1c5c92602b25c7a54',
     videoUrl: 'https://www.youtube.com/watch?v=X-KDt-G1pJ0',
     year: 2010,
     genre: 'Sci-Fi',
