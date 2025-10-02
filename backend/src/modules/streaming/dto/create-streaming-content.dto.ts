@@ -4,6 +4,7 @@ import {
   IsNumber,
   IsArray,
   IsUrl,
+  IsOptional,
   Min,
   Max,
   MinLength,
@@ -46,6 +47,7 @@ export class CreateStreamingContentDto {
   @IsString({ each: true })
   cast: string[];
 
+  @IsOptional()
   @IsNumber()
   @Min(0)
   @Max(100)

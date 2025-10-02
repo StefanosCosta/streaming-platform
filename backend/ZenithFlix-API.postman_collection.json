@@ -1,0 +1,676 @@
+{
+  "info": {
+    "name": "ZenithFlix API",
+    "description": "Complete API collection for ZenithFlix streaming platform. Includes all CRUD operations for streaming content with JWT authentication examples.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "zenithflix"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{jwt_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3001",
+      "type": "string"
+    },
+    {
+      "key": "jwt_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "content_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has access token\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('access_token');",
+                  "    pm.expect(jsonData).to.have.property('token_type');",
+                  "    pm.expect(jsonData).to.have.property('expires_in');",
+                  "    pm.expect(jsonData.token_type).to.equal('Bearer');",
+                  "    ",
+                  "    // Automatically save the JWT token for use in other requests",
+                  "    pm.collectionVariables.set(\"jwt_token\", jsonData.access_token);",
+                  "});",
+                  "",
+                  "pm.test(\"Token is a valid JWT format\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    var token = jsonData.access_token;",
+                  "    pm.expect(token.split('.')).to.have.lengthOf(3);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"demo@zenithflix.com\",\n  \"password\": \"DemoPass123!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "description": "Mock login endpoint that generates a JWT token for API testing.\n\n**Important**: This is a demo implementation that accepts ANY credentials. In production, this would validate against a user database.\n\n**Validation Rules:**\n- email: must be valid email format\n- password: min 8 characters, must contain:\n  - At least 1 uppercase letter\n  - At least 1 lowercase letter\n  - At least 1 special character (!@#$%^&*(),.?\":{}|<>)\n\n**Example Valid Credentials:**\n- Email: demo@zenithflix.com\n- Password: DemoPass123!\n\nThe returned JWT token is automatically saved to the collection variable `jwt_token` and will be used for authenticated requests."
+          },
+          "response": []
+        },
+        {
+          "name": "Login (Invalid Email)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 400\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has validation error\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('message');",
+                  "    pm.expect(jsonData).to.have.property('statusCode');",
+                  "    pm.expect(jsonData.statusCode).to.equal(400);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"not-an-email\",\n  \"password\": \"DemoPass123!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "description": "Example of 400 validation error with invalid email format."
+          },
+          "response": []
+        },
+        {
+          "name": "Login (Weak Password)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 400\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has validation error for password\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('message');",
+                  "    pm.expect(jsonData.statusCode).to.equal(400);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"demo@zenithflix.com\",\n  \"password\": \"weak\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "description": "Example of 400 validation error with weak password:\n- Less than 8 characters\n- Missing uppercase letter\n- Missing special character"
+          },
+          "response": []
+        }
+      ],
+      "description": "Authentication endpoints for obtaining JWT tokens"
+    },
+    {
+      "name": "Streaming Content",
+      "item": [
+        {
+          "name": "Get All Streaming Content",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response is an array\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test(\"Content has required fields\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.length > 0) {",
+                  "        pm.expect(jsonData[0]).to.have.property('id');",
+                  "        pm.expect(jsonData[0]).to.have.property('title');",
+                  "        pm.expect(jsonData[0]).to.have.property('description');",
+                  "        pm.expect(jsonData[0]).to.have.property('thumbnailUrl');",
+                  "        pm.expect(jsonData[0]).to.have.property('videoUrl');",
+                  "        pm.expect(jsonData[0]).to.have.property('year');",
+                  "        pm.expect(jsonData[0]).to.have.property('genre');",
+                  "        pm.expect(jsonData[0]).to.have.property('rating');",
+                  "        pm.expect(jsonData[0]).to.have.property('duration');",
+                  "        pm.expect(jsonData[0]).to.have.property('cast');",
+                  "        pm.expect(jsonData[0]).to.have.property('watchProgress');",
+                  "        pm.expect(jsonData[0]).to.have.property('createdAt');",
+                  "        ",
+                  "        // Save first content ID for other requests",
+                  "        pm.collectionVariables.set(\"content_id\", jsonData[0].id);",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/streaming",
+              "host": ["{{base_url}}"],
+              "path": ["api", "streaming"]
+            },
+            "description": "Retrieve all streaming content. No authentication required."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Content by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has content fields\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('id');",
+                  "    pm.expect(jsonData).to.have.property('title');",
+                  "    pm.expect(jsonData).to.have.property('description');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/streaming/{{content_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "streaming", "{{content_id}}"]
+            },
+            "description": "Retrieve a single streaming content item by ID. No authentication required.\n\nReturns 404 if content not found."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Content by ID (Not Found)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 404\", function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has error message\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('message');",
+                  "    pm.expect(jsonData).to.have.property('error');",
+                  "    pm.expect(jsonData).to.have.property('statusCode');",
+                  "    pm.expect(jsonData.statusCode).to.equal(404);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/streaming/00000000-0000-0000-0000-000000000000",
+              "host": ["{{base_url}}"],
+              "path": ["api", "streaming", "00000000-0000-0000-0000-000000000000"]
+            },
+            "description": "Example of 404 error response when content is not found."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Streaming Content",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test(\"Content created successfully\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('id');",
+                  "    pm.expect(jsonData.title).to.equal(pm.variables.get('request_title'));",
+                  "    ",
+                  "    // Save created content ID",
+                  "    pm.collectionVariables.set(\"content_id\", jsonData.id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "pm.variables.set('request_title', 'Postman Test Movie ' + Date.now());"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"{{request_title}}\",\n  \"description\": \"A test movie created via Postman\",\n  \"thumbnailUrl\": \"https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fm.media-amazon.com%2Fimages%2FM%2FMV5BMTg4ODkzMDQ3Nl5BMl5BanBnXkFtZTgwNTEwMTkxMDE%40._V1_FMjpg_UX1000_.jpg&f=1&nofb=1&ipt=e970a9daf0117d1d9a529c0099d2430233e65bf94424b8e384b6618acef00057\",\n  \"videoUrl\": \"https://www.youtube.com/watch?v=t462tTJQxuA\",\n  \"year\": 2024,\n  \"genre\": \"Test\",\n  \"rating\": 8.5,\n  \"duration\": 120,\n  \"cast\": [\"Test Actor 1\", \"Test Actor 2\"]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/streaming",
+              "host": ["{{base_url}}"],
+              "path": ["api", "streaming"]
+            },
+            "description": "Create new streaming content. **Requires JWT authentication.**\n\nValidation rules:\n- title: required, min 1 character\n- description: required, min 1 character\n- thumbnailUrl: required, valid URL\n- videoUrl: required, valid URL\n- year: required, integer between 1900-2100\n- genre: required, min 1 character\n- rating: required, number between 0-10\n- duration: required, integer, min 1\n- cast: required, array of strings\n- watchProgress: optional, number between 0-100"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Content (No Auth)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 401\", function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has unauthorized error\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('statusCode');",
+                  "    pm.expect(jsonData.statusCode).to.equal(401);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Test Movie\",\n  \"description\": \"This should fail without JWT\",\n  \"thumbnailUrl\": \"https://example.com/thumbnail.jpg\",\n  \"videoUrl\": \"https://example.com/video.mp4\",\n  \"year\": 2024,\n  \"genre\": \"Test\",\n  \"rating\": 8.5,\n  \"duration\": 120,\n  \"cast\": [\"Actor 1\"]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/streaming",
+              "host": ["{{base_url}}"],
+              "path": ["api", "streaming"]
+            },
+            "description": "Example of 401 unauthorized error when JWT token is not provided."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Content (Invalid Data)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 400\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has validation error\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('message');",
+                  "    pm.expect(jsonData).to.have.property('statusCode');",
+                  "    pm.expect(jsonData.statusCode).to.equal(400);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"\",\n  \"description\": \"Invalid content\",\n  \"thumbnailUrl\": \"not-a-url\",\n  \"videoUrl\": \"also-not-a-url\",\n  \"year\": 1800,\n  \"genre\": \"Test\",\n  \"rating\": 15,\n  \"duration\": 120,\n  \"cast\": [\"Actor 1\"]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/streaming",
+              "host": ["{{base_url}}"],
+              "path": ["api", "streaming"]
+            },
+            "description": "Example of 400 validation error with invalid data:\n- Empty title\n- Invalid URL formats\n- Year out of range (1800 < 1900)\n- Rating out of range (15 > 10)"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Streaming Content",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Content updated successfully\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('id');",
+                  "    pm.expect(jsonData.title).to.include('Updated');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated Movie Title\",\n  \"description\": \"Updated description for this movie\",\n  \"rating\": 9.0\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/streaming/{{content_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "streaming", "{{content_id}}"]
+            },
+            "description": "Update existing streaming content. **Requires JWT authentication.**\n\nSupports partial updates - you can send only the fields you want to update.\n\nReturns 404 if content not found."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Content (No Auth)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 401\", function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Should fail without JWT\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/streaming/{{content_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "streaming", "{{content_id}}"]
+            },
+            "description": "Example of 401 unauthorized error when updating without JWT token."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Content (Not Found)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 404\", function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated Title\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/streaming/00000000-0000-0000-0000-000000000000",
+              "host": ["{{base_url}}"],
+              "path": ["api", "streaming", "00000000-0000-0000-0000-000000000000"]
+            },
+            "description": "Example of 404 error when trying to update non-existent content."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Streaming Content",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Delete confirmation message\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('message');",
+                  "    pm.expect(jsonData.message).to.include('deleted');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/streaming/{{content_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "streaming", "{{content_id}}"]
+            },
+            "description": "Delete streaming content by ID. **Requires JWT authentication.**\n\nReturns 404 if content not found."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Content (No Auth)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 401\", function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/streaming/{{content_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "streaming", "{{content_id}}"]
+            },
+            "description": "Example of 401 unauthorized error when deleting without JWT token."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Content (Not Found)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 404\", function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/streaming/00000000-0000-0000-0000-000000000000",
+              "host": ["{{base_url}}"],
+              "path": ["api", "streaming", "00000000-0000-0000-0000-000000000000"]
+            },
+            "description": "Example of 404 error when trying to delete non-existent content."
+          },
+          "response": []
+        }
+      ],
+      "description": "All endpoints for managing streaming content (movies, shows, etc.)"
+    }
+  ]
+}

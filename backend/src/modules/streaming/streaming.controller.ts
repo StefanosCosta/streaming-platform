@@ -3,7 +3,7 @@ import {
   Get,
   Post,
   Body,
-  Patch,
+  Put,
   Param,
   Delete,
   UseGuards,
@@ -37,7 +37,7 @@ export class StreamingController {
     return this.streamingService.findOne(id);
   }
 
-  @Patch(':id')
+  @Put(':id')
   @UseGuards(JwtAuthGuard)
   update(
     @Param('id') id: string,

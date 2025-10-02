@@ -23,6 +23,9 @@ let JwtStrategy = class JwtStrategy extends (0, passport_1.PassportStrategy)(pas
         });
     }
     async validate(payload) {
+        if (!payload || !payload.sub) {
+            throw new common_1.UnauthorizedException('Invalid token payload: missing sub field');
+        }
         return { userId: payload.sub, username: payload.username };
     }
 };
