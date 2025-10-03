@@ -381,11 +381,14 @@ npm run test:e2e:headed
 npm run test:e2e:debug
 ```
 
-**Note on E2E Tests**:
-- Playwright E2E tests require the frontend dev server to be running (`npm run dev`)
-- The tests will automatically start the dev server if not already running
+**Important Notes on E2E Tests**:
+- **Both backend AND frontend servers must be running** for E2E tests to pass
+  - Backend: `cd backend && npm run start:dev` (runs on http://localhost:3001)
+  - Frontend: `cd frontend && npm run dev` (runs on http://localhost:3000)
+- The Playwright config will automatically start the frontend dev server if not already running
 - Tests use Chromium browser by default
 - First-time setup requires installing Playwright browsers with `npx playwright install chromium`
+- E2E tests verify full stack functionality including watch history persistence to backend
 
 ## 📚 API Documentation
 
