@@ -658,11 +658,15 @@ Update watch progress for a content item (public, no authentication required)
 
 1. **Mock Authentication**: JWT authentication is mocked. Production would require user registration/login.
 
-2. **Client-Side Watch History**: Uses localStorage. Production would sync with backend.
+2. **No RBAC for Content Management**: The backend CRUD endpoints (POST, PUT, DELETE) for streaming content are currently open for demo purposes. In production, these would be protected with Role-Based Access Control (RBAC), allowing only admin users to create, update, or delete movies from the database.
 
-3. **Image Loading**: Uses external URLs. Production would use CDN with optimized images.
+3. **No Authentication for Video Viewing**: Video viewing and progress tracking have no JWT protection for demo purposes. In production, video viewing functionality would require user login with watch history tied to authenticated user sessions.
 
-4. **No Pagination**: All content loads at once. Production would implement infinite scroll or pagination.
+4. **Watch History Storage**: Backend stores `watchProgress` directly on each content item with automatic debounced updates (5s during playback, immediate on close). Frontend uses localStorage for offline persistence and syncs with backend. In production, this would use a proper many-to-many relationship between Users/Profiles and Movies in the database to track individual watch history per user.
+
+5. **Image Loading**: Uses external URLs. Production would use CDN with optimized images.
+
+6. **No Pagination**: All content loads at once. Production would implement infinite scroll or pagination.
 
 ### Future Enhancements
 
