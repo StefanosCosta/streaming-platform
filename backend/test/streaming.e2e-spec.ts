@@ -275,26 +275,45 @@ describe('StreamingController (e2e)', () => {
         expect(response.body.rating).toBe(updatedData.rating);
       });
 
-      it('should allow partial updates', async () => {
-        const partialUpdate = {
-          title: 'Partially Updated Title',
+      it('should require full replacement (all fields)', async () => {
+        const fullUpdate = {
+          title: 'Fully Updated Title',
+          description: 'Fully updated description',
+          thumbnailUrl: 'https://example.com/updated-thumbnail.jpg',
+          videoUrl: 'https://example.com/updated-video.mp4',
+          year: 2024,
+          genre: 'Drama',
+          rating: 9.0,
+          duration: 135,
+          cast: ['Actor 1', 'Actor 2', 'Actor 3'],
         };
 
         const response = await request(app.getHttpServer())
           .put(`/api/streaming/${contentIdForUpdate}`)
           .set('Authorization', `Bearer ${authToken}`)
-          .send(partialUpdate)
+          .send(fullUpdate)
           .expect(200);
 
-        expect(response.body.title).toBe(partialUpdate.title);
-        // Other fields should remain unchanged
-        expect(response.body).toHaveProperty('description');
-        expect(response.body).toHaveProperty('year');
+        expect(response.body.title).toBe(fullUpdate.title);
+        expect(response.body.description).toBe(fullUpdate.description);
+        expect(response.body.rating).toBe(fullUpdate.rating);
+      });
+
+      it('should return 400 for partial updates (missing required fields)', async () => {
+        const partialUpdate = {
+          title: 'Only Title Updated',
+        };
+
+        await request(app.getHttpServer())
+          .put(`/api/streaming/${contentIdForUpdate}`)
+          .set('Authorization', `Bearer ${authToken}`)
+          .send(partialUpdate)
+          .expect(400);
       });
 
       it('should return 404 for non-existent content', async () => {
         const nonExistentId = '00000000-0000-0000-0000-000000000000';
-        const updateData = { title: 'Should not work' };
+        const updateData = createValidContent();
 
         await request(app.getHttpServer())
           .put(`/api/streaming/${nonExistentId}`)

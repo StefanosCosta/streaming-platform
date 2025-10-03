@@ -1,6 +1,4 @@
-import { PartialType } from '@nestjs/mapped-types';
 import { CreateStreamingContentDto } from './create-streaming-content.dto';
 
-export class UpdateStreamingContentDto extends PartialType(
-  CreateStreamingContentDto,
-) {}
+// PUT requires all fields for full replacement (not partial like PATCH)
+export class UpdateStreamingContentDto extends CreateStreamingContentDto {}
