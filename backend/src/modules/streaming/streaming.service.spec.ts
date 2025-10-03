@@ -157,8 +157,18 @@ describe('StreamingService', () => {
 
   describe('update', () => {
     it('should update a streaming content', async () => {
-      const updateDto = { title: 'Updated Title' };
-      const updatedContent = { ...mockContent, title: 'Updated Title' };
+      const updateDto = {
+        title: 'Updated Title',
+        description: 'Updated description',
+        thumbnailUrl: 'https://example.com/updated-thumb.jpg',
+        videoUrl: 'https://example.com/updated-video.mp4',
+        year: 2024,
+        genre: 'Drama',
+        rating: 9.0,
+        duration: 135,
+        cast: ['Actor 1', 'Actor 2', 'Actor 3'],
+      };
+      const updatedContent = { ...mockContent, ...updateDto };
 
       mockPrismaService.streamingContent.findUnique.mockResolvedValue(
         mockContent,
@@ -179,8 +189,20 @@ describe('StreamingService', () => {
     it('should throw NotFoundException when updating non-existent content', async () => {
       mockPrismaService.streamingContent.findUnique.mockResolvedValue(null);
 
+      const updateDto = {
+        title: 'Updated Title',
+        description: 'Updated description',
+        thumbnailUrl: 'https://example.com/updated-thumb.jpg',
+        videoUrl: 'https://example.com/updated-video.mp4',
+        year: 2024,
+        genre: 'Drama',
+        rating: 9.0,
+        duration: 135,
+        cast: ['Actor 1'],
+      };
+
       await expect(
-        service.update('non-existent-id', { title: 'Updated' }),
+        service.update('non-existent-id', updateDto),
       ).rejects.toThrow(NotFoundException);
     });
   });

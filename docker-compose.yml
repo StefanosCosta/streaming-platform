@@ -13,6 +13,48 @@ services:
       POSTGRES_DB: zenithflix
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U zenithflix']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: zenithflix-backend
+    ports:
+      - '3001:3001'
+    environment:
+      DATABASE_URL: postgresql://zenithflix:zenithflix123@postgres:5432/zenithflix?schema=public
+      JWT_SECRET: dev-secret-key-not-for-production
+      PORT: 3001
+      FRONTEND_URL: http://localhost:3000
+      NODE_ENV: development
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD', 'wget', '--quiet', '--tries=1', '--spider', 'http://localhost:3001/api/streaming']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: zenithflix-frontend
+    ports:
+      - '3000:3000'
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:3001
+      NODE_ENV: development
+    depends_on:
+      backend:
+        condition: service_healthy
 
 volumes:
   postgres_data:

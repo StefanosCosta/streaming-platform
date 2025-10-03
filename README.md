@@ -110,20 +110,89 @@ streaming-platform/
 
 ## 🚀 Setup Instructions
 
-### 1. Clone the Repository
+You can run this application either with **Docker** (recommended) or **locally** with Node.js.
+
+### Option A: Docker Setup (Recommended)
+
+The easiest way to run the entire stack with a single command.
+
+#### 1. Clone the Repository
 
 ```bash
 git clone <repository-url>
 cd streaming-platform
 ```
 
-### 2. Start PostgreSQL Database
+#### 2. Start All Services with Docker Compose
 
 ```bash
-docker-compose up -d
+docker-compose up --build
 ```
 
-This will start a PostgreSQL container on port 5432.
+This will:
+- Build Docker images for backend and frontend
+- Start PostgreSQL database
+- Run database migrations automatically
+- Start backend API on port 3001
+- Start frontend on port 3000
+
+**First-time setup**: The initial build may take 5-10 minutes as Docker downloads base images and installs dependencies.
+
+#### 3. Access the Application
+
+Open your browser and navigate to:
+- **Frontend**: http://localhost:3000
+- **Backend API**: http://localhost:3001/api/streaming
+
+#### 4. Seed the Database (Optional)
+
+To populate the database with sample content:
+
+```bash
+# Run seed script in the backend container
+docker-compose exec backend npm run seed:prod
+```
+
+#### 5. View Logs
+
+```bash
+# View all logs
+docker-compose logs -f
+
+# View specific service logs
+docker-compose logs -f backend
+docker-compose logs -f frontend
+docker-compose logs -f postgres
+```
+
+#### 6. Stop Services
+
+```bash
+# Stop all services
+docker-compose down
+
+# Stop and remove volumes (clears database)
+docker-compose down -v
+```
+
+### Option B: Local Setup (Development)
+
+Run services locally with Node.js for development with hot reload.
+
+#### 1. Clone the Repository
+
+```bash
+git clone <repository-url>
+cd streaming-platform
+```
+
+#### 2. Start PostgreSQL Database
+
+```bash
+docker-compose up -d postgres
+```
+
+This will start only the PostgreSQL container on port 5432.
 
 ### 3. Backend Setup
 
@@ -335,6 +404,21 @@ This project includes comprehensive testing to meet and exceed the following req
   - Progress updates on multiple watches
 
 ### Running Tests
+
+**Recommended Setup for Testing:**
+
+1. Start only the PostgreSQL container:
+   ```bash
+   docker-compose up -d postgres
+   ```
+
+2. Run backend and frontend manually with npm commands (see below)
+
+This approach provides:
+- Faster test execution (no Docker overhead)
+- Better debugging experience
+- Hot reload during development
+- Direct access to test output
 
 #### Backend Tests
 
@@ -721,8 +805,21 @@ npm run prisma:seed
 
 ### Stopping Services
 
+**Docker Setup:**
 ```bash
-# Stop Docker containers
+# Stop all services
+docker-compose down
+
+# Stop and remove volumes (clears database)
+docker-compose down -v
+
+# Rebuild after code changes
+docker-compose up --build
+```
+
+**Local Setup:**
+```bash
+# Stop PostgreSQL container only
 docker-compose down
 
 # Stop backend
@@ -734,7 +831,59 @@ Ctrl+C in frontend terminal
 
 ### Common Issues
 
-**Port Already in Use:**
+**Docker Issues:**
+
+*Container fails to start:*
+```bash
+# View logs for specific service
+docker-compose logs backend
+docker-compose logs frontend
+docker-compose logs postgres
+
+# Rebuild containers
+docker-compose up --build --force-recreate
+```
+
+*Port already in use:*
+```bash
+# Stop all running containers
+docker-compose down
+
+# Check what's using the port
+lsof -i :3000  # frontend
+lsof -i :3001  # backend
+lsof -i :5432  # postgres
+
+# Kill the process
+kill -9 <PID>
+```
+
+*Database connection issues:*
+```bash
+# Check if postgres is healthy
+docker-compose ps
+
+# Restart postgres
+docker-compose restart postgres
+
+# Reset database completely
+docker-compose down -v
+docker-compose up --build
+```
+
+*Changes not reflected:*
+```bash
+# Rebuild images after code changes
+docker-compose up --build
+
+# Clear cache and rebuild
+docker-compose build --no-cache
+docker-compose up
+```
+
+**Local Setup Issues:**
+
+*Port already in use:*
 ```bash
 # Check what's using port 3001
 lsof -i :3001
@@ -743,7 +892,7 @@ lsof -i :3001
 kill -9 <PID>
 ```
 
-**Database Connection Issues:**
+*Database connection issues:*
 ```bash
 # Restart PostgreSQL container
 docker-compose restart postgres

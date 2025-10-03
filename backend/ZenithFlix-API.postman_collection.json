@@ -493,14 +493,14 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"title\": \"Updated Movie Title\",\n  \"description\": \"Updated description for this movie\",\n  \"rating\": 9.0\n}"
+              "raw": "{\n  \"title\": \"Updated Movie Title\",\n  \"description\": \"Updated description for this movie - full replacement\",\n  \"thumbnailUrl\": \"https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fm.media-amazon.com%2Fimages%2FM%2FMV5BMTg4ODkzMDQ3Nl5BMl5BanBnXkFtZTgwNTEwMTkxMDE%40._V1_FMjpg_UX1000_.jpg&f=1&nofb=1&ipt=e970a9daf0117d1d9a529c0099d2430233e65bf94424b8e384b6618acef00057\",\n  \"videoUrl\": \"https://www.youtube.com/watch?v=t462tTJQxuA\",\n  \"year\": 2024,\n  \"genre\": \"Drama\",\n  \"rating\": 9.0,\n  \"duration\": 135,\n  \"cast\": [\"Updated Actor 1\", \"Updated Actor 2\", \"Updated Actor 3\"]\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/streaming/{{content_id}}",
               "host": ["{{base_url}}"],
               "path": ["api", "streaming", "{{content_id}}"]
             },
-            "description": "Update existing streaming content. **Requires JWT authentication.**\n\nSupports partial updates - you can send only the fields you want to update.\n\nReturns 404 if content not found."
+            "description": "Update existing streaming content with **full replacement**. **Requires JWT authentication.**\n\n**Important**: This is a true PUT operation - ALL fields must be provided (except optional watchProgress).\nThe entire resource will be replaced with the new data.\n\n**Required fields:**\n- title\n- description\n- thumbnailUrl\n- videoUrl\n- year\n- genre\n- rating\n- duration\n- cast\n\n**Optional fields:**\n- watchProgress\n\nReturns 404 if content not found.\nReturns 400 if required fields are missing or validation fails."
           },
           "response": []
         },
