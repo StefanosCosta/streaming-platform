@@ -727,20 +727,19 @@ Update watch progress for a content item (public, no authentication required)
    - Cross-browser compatibility
    - Active development and community support
 
-7. **Watch Progress Tracking Strategy**: localStorage-first with backend sync
+7. **Watch Progress Tracking Strategy**: localStorage-first with bi-directional sync
    - **Primary Storage**: Browser localStorage for fast, offline-capable tracking
    - **Backend Sync**: Automatic sync to database via `PATCH /api/streaming/:id/progress`
    - **Sync Behavior**:
-     - Debounced updates every 5 seconds during playback
-     - Immediate sync on video close
-     - One-way sync: frontend → backend
-   - **Read Pattern**: Frontend always reads from localStorage (not from backend)
+     - **Frontend → Backend**: Debounced updates every 5 seconds during playback, immediate sync on video close
+     - **Backend → Frontend**: On page load, syncs backend progress to localStorage if localStorage is empty
+   - **Cross-Device Support**:
+     - First-time load on new device automatically restores progress from backend
+     - Enables seamless continuation across devices
    - **Rationale**:
-     - Faster user experience (no API calls on page load)
-     - Works offline
-     - Backend serves as backup/history tracking
-     - Future enhancement: could fetch backend progress on new devices
-   - **Trade-off**: Progress not synced across devices in current implementation
+     - Faster user experience (localStorage reads)
+     - Works offline with backend backup
+     - Automatic progress restoration on new devices
 
 ## 🎨 Design Decisions
 
