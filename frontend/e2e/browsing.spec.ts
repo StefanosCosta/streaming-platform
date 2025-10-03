@@ -66,17 +66,22 @@ test.describe('Content Browsing', () => {
   });
 
   test('should show watch progress bars when available', async ({ page }) => {
+    // Fetch content to get a real ID
+    const response = await page.request.get('http://localhost:3001/api/streaming');
+    const content = await response.json();
+    const firstContentId = content[0]?.id;
+
     // Add watch history to localStorage
-    await page.evaluate(() => {
+    await page.evaluate((contentId) => {
       const watchHistory = [
         {
-          contentId: 'cd32b866-e325-47e6-a334-93963cf32adc',
+          contentId: contentId,
           progress: 35,
           lastWatched: new Date().toISOString(),
         },
       ];
       localStorage.setItem('zenithflix_watch_history', JSON.stringify(watchHistory));
-    });
+    }, firstContentId);
 
     // Reload page
     await page.reload();

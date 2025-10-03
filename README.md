@@ -412,7 +412,21 @@ This project includes comprehensive testing to meet and exceed the following req
    docker-compose up -d postgres
    ```
 
-2. Run backend and frontend manually with npm commands (see below)
+2. Seed the database:
+   ```bash
+   cd backend
+   npx prisma migrate dev
+   npm run prisma:seed
+   ```
+
+3. Run backend manually (required for all tests):
+   ```bash
+   cd backend
+   npm run start:dev
+   ```
+
+3. For **frontend unit tests**, no additional setup needed
+4. For **frontend E2E tests**, do NOT start the frontend manually - Playwright starts its own server
 
 This approach provides:
 - Faster test execution (no Docker overhead)

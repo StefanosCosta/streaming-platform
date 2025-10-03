@@ -1,27 +1,35 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Watch History', () => {
+  let firstContentId: string;
+
   test.beforeEach(async ({ page, context }) => {
     // Clear localStorage before each test
     await context.clearCookies();
     await page.goto('/');
     await page.evaluate(() => localStorage.clear());
+
+    // Fetch content to get a real ID for tests
+    const response = await page.request.get('http://localhost:3001/api/streaming');
+    const content = await response.json();
+    firstContentId = content[0]?.id;
+
     // Wait for content to load instead of networkidle
     await page.getByText('Trending Now').waitFor({ state: 'visible', timeout: 10000 });
   });
 
   test('should save watch progress to localStorage', async ({ page }) => {
     // Manually add watch progress to localStorage to test the functionality
-    await page.evaluate(() => {
+    await page.evaluate((contentId) => {
       const watchHistory = [
         {
-          contentId: 'cd32b866-e325-47e6-a334-93963cf32adc', // First content ID from backend
+          contentId: contentId,
           progress: 25.5,
           lastWatched: new Date().toISOString(),
         },
       ];
       localStorage.setItem('zenithflix_watch_history', JSON.stringify(watchHistory));
-    });
+    }, firstContentId);
 
     // Check localStorage
     const watchHistory = await page.evaluate(() => {
@@ -39,16 +47,16 @@ test.describe('Watch History', () => {
     page,
   }) => {
     // Add watch progress to localStorage
-    await page.evaluate(() => {
+    await page.evaluate((contentId) => {
       const watchHistory = [
         {
-          contentId: 'cd32b866-e325-47e6-a334-93963cf32adc',
+          contentId: contentId,
           progress: 45,
           lastWatched: new Date().toISOString(),
         },
       ];
       localStorage.setItem('zenithflix_watch_history', JSON.stringify(watchHistory));
-    });
+    }, firstContentId);
 
     // Reload page
     await page.reload();
@@ -60,16 +68,16 @@ test.describe('Watch History', () => {
 
   test('should show progress bar on watched content', async ({ page }) => {
     // Add watch progress to localStorage
-    await page.evaluate(() => {
+    await page.evaluate((contentId) => {
       const watchHistory = [
         {
-          contentId: 'cd32b866-e325-47e6-a334-93963cf32adc',
+          contentId: contentId,
           progress: 60,
           lastWatched: new Date().toISOString(),
         },
       ];
       localStorage.setItem('zenithflix_watch_history', JSON.stringify(watchHistory));
-    });
+    }, firstContentId);
 
     // Reload to show progress bars
     await page.reload();
@@ -83,16 +91,16 @@ test.describe('Watch History', () => {
 
   test('should resume from saved progress', async ({ page }) => {
     // Set watch progress in localStorage
-    await page.evaluate(() => {
+    await page.evaluate((contentId) => {
       const watchHistory = [
         {
-          contentId: 'cd32b866-e325-47e6-a334-93963cf32adc',
+          contentId: contentId,
           progress: 50,
           lastWatched: new Date().toISOString(),
         },
       ];
       localStorage.setItem('zenithflix_watch_history', JSON.stringify(watchHistory));
-    });
+    }, firstContentId);
 
     // Navigate to home instead of reload to ensure fresh state
     await page.goto('/');
@@ -121,46 +129,32 @@ test.describe('Watch History', () => {
   });
 
   test('should sync backend progress to localStorage', async ({ page }) => {
-    // This test verifies that even if localStorage is cleared,
-    // the app will restore watch history from the backend
+    // This test verifies that if backend has progress, it will sync to localStorage
 
-    // First, add watch history to localStorage
-    await page.evaluate(() => {
-      const watchHistory = [
-        {
-          contentId: 'cd32b866-e325-47e6-a334-93963cf32adc',
-          progress: 75,
-          lastWatched: new Date().toISOString(),
-        },
-      ];
-      localStorage.setItem('zenithflix_watch_history', JSON.stringify(watchHistory));
+    // First, update backend progress directly via API
+    await page.request.patch(`http://localhost:3001/api/streaming/${firstContentId}/progress`, {
+      data: { watchProgress: 75 }
     });
 
-    // Navigate to home to show Continue Watching
+    // Navigate to home - should sync backend progress to localStorage
     await page.goto('/');
     await page.getByText('Trending Now').waitFor({ state: 'visible', timeout: 10000 });
 
-    // Continue Watching should appear
-    await expect(page.getByText(/continue watching/i)).toBeVisible();
-
-    // Clear localStorage to simulate data loss
-    await page.evaluate(() => localStorage.clear());
-
-    // Reload page - backend should restore the progress
-    await page.goto('/', { waitUntil: 'domcontentloaded' });
+    // Wait for sync to complete
     await page.waitForTimeout(500);
-    await page.getByText('Trending Now').waitFor({ state: 'visible', timeout: 10000 });
 
-    // localStorage should be repopulated from backend
-    const historyAfterReload = await page.evaluate(() => {
+    // localStorage should be populated from backend
+    const historyAfterSync = await page.evaluate(() => {
       const stored = localStorage.getItem('zenithflix_watch_history');
       return stored ? JSON.parse(stored) : null;
     });
 
-    // Verify backend synced the data back
-    expect(historyAfterReload).not.toBeNull();
+    // Verify backend synced to localStorage
+    expect(historyAfterSync).not.toBeNull();
+    expect(historyAfterSync.length).toBeGreaterThan(0);
+    expect(historyAfterSync[0].progress).toBe(75);
 
-    // Continue Watching should still appear (restored from backend)
+    // Continue Watching should appear (from synced backend progress)
     await expect(page.getByText(/continue watching/i)).toBeVisible();
   });
 
@@ -168,16 +162,16 @@ test.describe('Watch History', () => {
     page,
   }) => {
     // First watch session - add initial progress
-    await page.evaluate(() => {
+    await page.evaluate((contentId) => {
       const watchHistory = [
         {
-          contentId: 'cd32b866-e325-47e6-a334-93963cf32adc',
+          contentId: contentId,
           progress: 30,
           lastWatched: new Date().toISOString(),
         },
       ];
       localStorage.setItem('zenithflix_watch_history', JSON.stringify(watchHistory));
-    });
+    }, firstContentId);
 
     // Get first watch progress
     const firstProgress = await page.evaluate(() => {
@@ -187,16 +181,16 @@ test.describe('Watch History', () => {
     expect(firstProgress).toBe(30);
 
     // Update progress (simulating second watch session)
-    await page.evaluate(() => {
+    await page.evaluate((contentId) => {
       const watchHistory = [
         {
-          contentId: 'cd32b866-e325-47e6-a334-93963cf32adc',
+          contentId: contentId,
           progress: 55,
           lastWatched: new Date().toISOString(),
         },
       ];
       localStorage.setItem('zenithflix_watch_history', JSON.stringify(watchHistory));
-    });
+    }, firstContentId);
 
     // Get second watch progress
     const secondProgress = await page.evaluate(() => {
