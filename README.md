@@ -606,14 +606,34 @@ Authorization: Bearer <token>
 **Response**: 201 Created
 
 #### PUT /api/streaming/:id
-Update streaming content (requires JWT token)
+Update streaming content with **full replacement** (requires JWT token)
 
 **Headers**:
 ```
 Authorization: Bearer <token>
 ```
 
-**Body**: Partial content object
+**Body**: Complete content object (all fields required except watchProgress)
+
+**Example**:
+```json
+{
+  "title": "Updated Movie Title",
+  "description": "Updated description",
+  "thumbnailUrl": "https://example.com/thumbnail.jpg",
+  "videoUrl": "https://example.com/video.mp4",
+  "year": 2024,
+  "genre": "Drama",
+  "rating": 9.0,
+  "duration": 135,
+  "cast": ["Actor 1", "Actor 2"]
+}
+```
+
+**Validation Rules**:
+- All fields are required (except optional `watchProgress`)
+- Returns 400 if any required field is missing
+- This is a true PUT operation - entire resource is replaced
 
 **Response**: 200 OK
 
