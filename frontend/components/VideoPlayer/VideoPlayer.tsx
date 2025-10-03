@@ -168,11 +168,29 @@ export default function VideoPlayer({
   };
 
   const handleSeekMouseUp = (e: React.MouseEvent<HTMLInputElement>) => {
-    setSeeking(false);
     if (playerRef.current && duration > 0) {
       const seekValue = parseFloat((e.target as HTMLInputElement).value);
       playerRef.current.currentTime = seekValue * duration;
     }
+    // Delay setting seeking to false to prevent onTimeUpdate from overriding
+    setTimeout(() => {
+      setSeeking(false);
+    }, 200);
+  };
+
+  const handleSeekTouchStart = () => {
+    setSeeking(true);
+  };
+
+  const handleSeekTouchEnd = (e: React.TouchEvent<HTMLInputElement>) => {
+    if (playerRef.current && duration > 0) {
+      const seekValue = parseFloat((e.target as HTMLInputElement).value);
+      playerRef.current.currentTime = seekValue * duration;
+    }
+    // Delay setting seeking to false to prevent onTimeUpdate from overriding
+    setTimeout(() => {
+      setSeeking(false);
+    }, 200);
   };
 
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -297,8 +315,10 @@ export default function VideoPlayer({
             step="any"
             value={played || 0}
             onMouseDown={handleSeekMouseDown}
+            onTouchStart={handleSeekTouchStart}
             onChange={handleSeekChange}
             onMouseUp={handleSeekMouseUp}
+            onTouchEnd={handleSeekTouchEnd}
             className="range-slider-progress"
             style={{ '--progress': `${(played || 0) * 100}%` } as React.CSSProperties}
             aria-label="Video progress"
