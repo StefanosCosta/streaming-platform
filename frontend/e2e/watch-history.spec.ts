@@ -94,7 +94,8 @@ test.describe('Watch History', () => {
       localStorage.setItem('zenithflix_watch_history', JSON.stringify(watchHistory));
     });
 
-    await page.reload();
+    // Navigate to home instead of reload to ensure fresh state
+    await page.goto('/');
     await page.getByText('Trending Now').waitFor({ state: 'visible', timeout: 10000 });
 
     // Continue Watching should appear
@@ -119,8 +120,11 @@ test.describe('Watch History', () => {
     await expect(playButton).toBeVisible();
   });
 
-  test('should clear watch history', async ({ page }) => {
-    // Add watch history to localStorage
+  test('should sync backend progress to localStorage', async ({ page }) => {
+    // This test verifies that even if localStorage is cleared,
+    // the app will restore watch history from the backend
+
+    // First, add watch history to localStorage
     await page.evaluate(() => {
       const watchHistory = [
         {
@@ -132,20 +136,32 @@ test.describe('Watch History', () => {
       localStorage.setItem('zenithflix_watch_history', JSON.stringify(watchHistory));
     });
 
-    await page.reload();
+    // Navigate to home to show Continue Watching
+    await page.goto('/');
     await page.getByText('Trending Now').waitFor({ state: 'visible', timeout: 10000 });
 
     // Continue Watching should appear
     await expect(page.getByText(/continue watching/i)).toBeVisible();
 
-    // Clear localStorage
+    // Clear localStorage to simulate data loss
     await page.evaluate(() => localStorage.clear());
-    await page.reload();
+
+    // Reload page - backend should restore the progress
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
+    await page.waitForTimeout(500);
     await page.getByText('Trending Now').waitFor({ state: 'visible', timeout: 10000 });
 
-    // Continue Watching should not appear
-    const continueWatchingSection = page.getByText(/continue watching/i);
-    await expect(continueWatchingSection).not.toBeVisible();
+    // localStorage should be repopulated from backend
+    const historyAfterReload = await page.evaluate(() => {
+      const stored = localStorage.getItem('zenithflix_watch_history');
+      return stored ? JSON.parse(stored) : null;
+    });
+
+    // Verify backend synced the data back
+    expect(historyAfterReload).not.toBeNull();
+
+    // Continue Watching should still appear (restored from backend)
+    await expect(page.getByText(/continue watching/i)).toBeVisible();
   });
 
   test('should update progress when watching multiple times', async ({
