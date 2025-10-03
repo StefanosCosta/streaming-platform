@@ -392,6 +392,31 @@ npm run test:e2e:debug
 
 ## 📚 API Documentation
 
+### Postman Collection
+
+A complete Postman collection is available for testing all API endpoints.
+
+**Location**: `backend/ZenithFlix-API.postman_collection.json`
+
+#### Importing into Postman
+
+1. Open Postman
+2. Click the **Import** button in the top left corner
+3. Select the **File** tab
+4. Click **Choose Files** and navigate to `backend/ZenithFlix-API.postman_collection.json`
+5. Click **Import**
+
+The collection includes all endpoints for:
+- Authentication (JWT login)
+- Streaming content CRUD operations
+- Watch progress tracking
+
+#### Setting up Postman Environment (Optional)
+
+Create a new environment with these variables for easier testing:
+- `baseUrl`: `http://localhost:3001` (or your production URL)
+- `authToken`: Your JWT token from the login endpoint
+
 ### Base URL
 ```
 http://localhost:3001
