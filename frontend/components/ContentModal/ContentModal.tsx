@@ -13,7 +13,7 @@ export default function ContentModal({
   content,
   onClose,
   onPlay,
-}: ContentModalProps) {
+}: Readonly<ContentModalProps>) {
   const modalRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 

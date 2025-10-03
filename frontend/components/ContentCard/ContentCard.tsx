@@ -12,7 +12,7 @@ export default function ContentCard({
   content,
   watchProgress = 0,
   onClick,
-}: ContentCardProps) {
+}: Readonly<ContentCardProps>) {
   return (
     <div
       className="flex-shrink-0 w-72 cursor-pointer group relative"

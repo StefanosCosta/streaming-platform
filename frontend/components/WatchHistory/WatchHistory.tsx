@@ -13,7 +13,7 @@ export default function WatchHistory({
   content,
   watchHistory,
   onContentClick,
-}: WatchHistoryProps) {
+}: Readonly<WatchHistoryProps>) {
   // Filter and sort content by most recently watched
   const watchedContent = content
     .filter((item) => {

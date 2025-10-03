@@ -16,7 +16,7 @@ export default function ContentGrid({
   content,
   watchProgress,
   onContentClick,
-}: ContentGridProps) {
+}: Readonly<ContentGridProps>) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
