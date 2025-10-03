@@ -8,7 +8,7 @@ interface VideoPlayerProps {
   content: StreamingContent;
   initialProgress?: number;
   onClose: () => void;
-  onProgress: (contentId: string, progress: number, immediate?: boolean) => void;
+  onProgress: (contentId: string, progress: number) => void;
 }
 
 export default function VideoPlayer({
@@ -151,34 +151,12 @@ export default function VideoPlayer({
   }, []);
 
   const handleClose = () => {
-    // Save final progress before closing (immediately, not debounced)
-    if (playerRef.current && duration > 0) {
-      const currentProgress = playerRef.current.currentTime;
-      const progressPercent = (currentProgress / duration) * 100;
-      onProgress(content.id, progressPercent, true); // true = immediate sync
+    // Save final progress before closing
+    if (duration > 0) {
+      const progressPercent = played * 100;
+      onProgress(content.id, progressPercent);
     }
     onClose();
-  };
-
-  const handleTimeUpdate = () => {
-    if (!playing || seeking || !playerRef.current || duration <= 0) {
-      return;
-    }
-
-    // Throttle updates to every 250ms
-    const now = Date.now();
-    if (now - lastUpdateTimeRef.current < 250) {
-      return;
-    }
-    lastUpdateTimeRef.current = now;
-
-    const currentTime = playerRef.current.currentTime;
-    const playedFraction = currentTime / duration;
-    setPlayed(playedFraction);
-
-    // Save progress to parent component
-    const progressPercent = playedFraction * 100;
-    onProgress(content.id, progressPercent);
   };
 
   const handleSeekMouseDown = () => {
@@ -268,7 +246,21 @@ export default function VideoPlayer({
             muted={muted}
             width="100%"
             height="100%"
-            onTimeUpdate={handleTimeUpdate}
+            onTimeUpdate={() => {
+              if (!seeking && playerRef.current && duration > 0) {
+                const currentTime = playerRef.current.currentTime;
+                const playedFraction = currentTime / duration;
+                setPlayed(playedFraction);
+
+                // Throttle updates to every 250ms
+                const now = Date.now();
+                if (now - lastUpdateTimeRef.current >= 250) {
+                  lastUpdateTimeRef.current = now;
+                  const progressPercent = playedFraction * 100;
+                  onProgress(content.id, progressPercent);
+                }
+              }
+            }}
             onDurationChange={() => {
               if (playerRef.current) {
                 const dur = playerRef.current.duration;
@@ -393,8 +385,10 @@ export default function VideoPlayer({
                 step={0.1}
                 value={volume}
                 onChange={handleVolumeChange}
-                className="range-slider-volume"
-                style={{ '--volume': `${volume * 100}%` } as React.CSSProperties}
+                className="w-20 h-1 rounded-lg appearance-none cursor-pointer"
+                style={{
+                  background: `linear-gradient(to right, #dc2626 0%, #dc2626 ${volume * 100}%, #4b5563 ${volume * 100}%, #4b5563 100%)`,
+                }}
                 aria-label="Volume"
               />
             </div>

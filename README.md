@@ -46,7 +46,9 @@ A modern, full-stack streaming platform built with NestJS, Next.js, PostgreSQL, 
 - ✅ Custom React hooks (useWatchHistory)
 - ✅ Hover animations and transitions
 - ✅ Dark theme optimized for streaming
-- ✅ Unit tests with Vitest and React Testing Library
+- ✅ Comprehensive testing suite
+  - Unit tests with Vitest and React Testing Library
+  - E2E tests with Playwright (27 tests across browsing, modals, and watch history)
 
 ## 📋 Prerequisites
 
@@ -303,7 +305,34 @@ This project includes comprehensive testing to meet and exceed the following req
 
 #### Unit Tests
 - **useWatchHistory hook** - Tests for localStorage operations and watch progress tracking
+- **ContentModal component** - 12 tests covering rendering, interactions, accessibility, and edge cases
 - Component tests using Vitest and React Testing Library
+
+#### E2E Tests (Playwright)
+- **Content Browsing** (`browsing.spec.ts`) - 8 tests
+  - Homepage loading and navigation
+  - Hero section with featured content
+  - Multiple content sections by genre
+  - Content cards with details
+  - Horizontal scrolling functionality
+  - Watch progress bars display
+  - Keyboard navigation
+
+- **Content Modal** (`modal.spec.ts`) - 12 tests
+  - Modal opening and closing (click, backdrop, keyboard)
+  - Content details display
+  - ARIA attributes and accessibility
+  - Focus management
+  - Body scroll locking
+  - Play button functionality
+
+- **Watch History** (`watch-history.spec.ts`) - 7 tests
+  - localStorage persistence
+  - Continue Watching section display
+  - Progress bar visualization
+  - Resume from saved progress
+  - Clear watch history
+  - Progress updates on multiple watches
 
 ### Running Tests
 
@@ -335,7 +364,28 @@ npm test
 
 # Run tests with UI
 npm run test:ui
+
+# Install Playwright browsers (first time only)
+npx playwright install chromium
+
+# Run E2E tests
+npm run test:e2e
+
+# Run E2E tests with UI (interactive mode)
+npm run test:e2e:ui
+
+# Run E2E tests in headed mode (see browser)
+npm run test:e2e:headed
+
+# Run E2E tests in debug mode
+npm run test:e2e:debug
 ```
+
+**Note on E2E Tests**:
+- Playwright E2E tests require the frontend dev server to be running (`npm run dev`)
+- The tests will automatically start the dev server if not already running
+- Tests use Chromium browser by default
+- First-time setup requires installing Playwright browsers with `npx playwright install chromium`
 
 ## 📚 API Documentation
 
