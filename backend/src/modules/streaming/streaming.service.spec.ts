@@ -182,7 +182,10 @@ describe('StreamingService', () => {
       expect(result).toEqual(updatedContent);
       expect(mockPrismaService.streamingContent.update).toHaveBeenCalledWith({
         where: { id: 'test-id-123' },
-        data: updateDto,
+        data: {
+          ...updateDto,
+          watchProgress: 0, // Default to 0 if not provided
+        },
       });
     });
 

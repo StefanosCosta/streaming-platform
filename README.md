@@ -636,7 +636,7 @@ Authorization: Bearer <token>
 - This is a true PUT operation - entire resource is replaced
 
 **Design Decision**:
-While standard REST PUT semantics typically allow nullable fields for flexibility, this API requires all content fields (title, description, URLs, year, genre, rating, duration, cast) to maintain data integrity. A movie without essential metadata (title, description, year, etc.) is not meaningful in a streaming platform context. Only `watchProgress` is optional as it represents user viewing state rather than core content metadata. In this case we also "forgive" the watchProgress being null/empty and don't set it to 0 to prevent accidental deletion in the context of an admin updating movie details (it's hard to track and send manually, even if you have a form that preloads a movie, it could change in the meantime and it should be in a different table anyway).  For partial updates or clearing fields, we would use a PATCH endpoint instead.
+While standard REST PUT semantics typically allow nullable fields for flexibility, this API requires all content fields (title, description, URLs, year, genre, rating, duration, cast) to maintain data integrity. A movie without essential metadata (title, description, year, etc.) is not meaningful in a streaming platform context. Only `watchProgress` is optional as it represents user viewing state rather than core content metadata. In this case we allow the watchProgress being null/empty and default it to 0 (if the movie changes completely then probably the user hasn't watched it). For partial updates or clearing fields, we would use a PATCH endpoint instead.
 
 **Response**: 200 OK
 

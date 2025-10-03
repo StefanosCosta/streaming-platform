@@ -54,9 +54,15 @@ export class StreamingService {
     try {
       await this.findOne(id); // Check if exists
 
+      // If watchProgress is not provided, set it to 0 (not started)
+      const dataToUpdate = {
+        ...updateStreamingContentDto,
+        watchProgress: updateStreamingContentDto.watchProgress ?? 0,
+      };
+
       return await this.prisma.streamingContent.update({
         where: { id },
-        data: updateStreamingContentDto,
+        data: dataToUpdate,
       });
     } catch (error) {
       if (error instanceof NotFoundException) {

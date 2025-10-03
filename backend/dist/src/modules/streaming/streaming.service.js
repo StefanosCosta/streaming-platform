@@ -55,9 +55,13 @@ let StreamingService = class StreamingService {
     async update(id, updateStreamingContentDto) {
         try {
             await this.findOne(id);
+            const dataToUpdate = {
+                ...updateStreamingContentDto,
+                watchProgress: updateStreamingContentDto.watchProgress ?? 0,
+            };
             return await this.prisma.streamingContent.update({
                 where: { id },
-                data: updateStreamingContentDto,
+                data: dataToUpdate,
             });
         }
         catch (error) {
