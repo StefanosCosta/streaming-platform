@@ -1,6 +1,9 @@
+-- Enable UUID extension
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
 -- CreateTable
 CREATE TABLE "streaming_content" (
-    "id" TEXT NOT NULL,
+    "id" UUID NOT NULL DEFAULT uuid_generate_v4(),
     "title" TEXT NOT NULL,
     "description" TEXT NOT NULL,
     "thumbnail_url" TEXT NOT NULL,

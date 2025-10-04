@@ -16,7 +16,7 @@ export default function VideoPlayer({
   initialProgress = 0,
   onClose,
   onProgress,
-}: VideoPlayerProps) {
+}: Readonly<VideoPlayerProps>) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const playerRef = useRef<any>(null);
   const [playing, setPlaying] = useState(true);
